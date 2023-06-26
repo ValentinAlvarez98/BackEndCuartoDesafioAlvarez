@@ -1,0 +1,57 @@
+[
+	{
+		"title": "Titulo 8",
+		"description": "Descripcion 8",
+		"price": 800,
+		"thumbnail": "Imagen 8",
+		"code": "Codigo 8",
+		"stock": 80,
+		"id": 8
+	},
+	{
+		"title": "Titulo 9",
+		"description": "Descripcion 9",
+		"price": 900,
+		"thumbnail": "Imagen 9",
+		"code": "Codigo 9",
+		"stock": 90,
+		"id": 9
+	},
+	{
+		"title": "Titulo 10",
+		"description": "Descripcion 10",
+		"price": 1000,
+		"thumbnail": "Imagen 10",
+		"code": "Codigo 10",
+		"stock": 100,
+		"id": 10
+	},
+	{
+		"title": "Titulo 2",
+		"description": "Descripción 2",
+		"code": "Codigo 2",
+		"price": 20,
+		"status": true,
+		"stock": 20,
+		"category": "categoria 2",
+		"thumbnails": [
+			"https://example1.com/product2.jpg",
+			"https://example2.com/product2.jpg"
+		],
+		"id": 37
+	},
+	{
+		"title": "Titulo 2",
+		"description": "Descripción 2",
+		"code": "Codigo 3",
+		"price": 20,
+		"status": true,
+		"stock": 20,
+		"category": "categoria 2",
+		"thumbnails": [
+			"https://example1.com/product2.jpg",
+			"https://example2.com/product2.jpg"
+		],
+		"id": 53
+	}
+]

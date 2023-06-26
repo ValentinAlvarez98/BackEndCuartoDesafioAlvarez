@@ -1,0 +1,26 @@
+{
+  "name": "backend-cuarto-desafio-alvarez",
+  "version": "1.0.0",
+  "description": "Cuarto desafio entregable para el curso de programacion backend",
+  "main": "index.js",
+  "type" : "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ValentinAlvarez98/BackEndCuartoDesafioAlvarez.git"
+  },
+  "author": "Valentín Alvarez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ValentinAlvarez98/BackEndCuartoDesafioAlvarez/issues"
+  },
+  "homepage": "https://github.com/ValentinAlvarez98/BackEndCuartoDesafioAlvarez#readme",
+  "dependencies": {
+    "express": "^4.18.2",
+    "express-handlebars": "^7.0.7",
+    "nodemon": "^2.0.22",
+    "socket.io": "^4.7.0"
+  }
+}

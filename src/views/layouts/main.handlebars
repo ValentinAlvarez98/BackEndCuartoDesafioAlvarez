@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+      <meta charset="UTF-8">
+      <title>{{title}}</title>
+</head>
+
+<body>
+      {{{body}}}
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="/socket.io/socket.io.js"></script>
+      <script>
+            // Se conecta al servidor
+            const socket = io();
+
+            // Se escucha el evento 'mensaje' y se muestra en consola   
+            socket.on('mensaje', (mensaje) => {
+                  console.log('Mensaje recibido:', mensaje);
+            });
+      </script>
+</body>
+
+</html>

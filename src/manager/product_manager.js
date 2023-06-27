@@ -1,5 +1,10 @@
 import fs from 'fs';
 
+import path from 'path';
+
+// Se importa el socketServer.
+import socketServer from '../app.js';
+
 // Se crea la clase ProductManager.
 class ProductManager {
 
@@ -8,7 +13,31 @@ class ProductManager {
             this.path = './data/products.json';
             this.products = [];
             this.loadProducts();
-      }
+
+            // Se configura el watcher, que se encarga de detectar cambios en el archivo products.json.
+
+            // Se obtiene el directorio y el nombre del archivo.
+            const directory = path.dirname(this.path);
+            const filename = path.basename(this.path);
+
+            // Se crea el watcher, con fs.watch.
+            fs.watch(directory, (eventType, changedFilename) => {
+
+                  // Se valida que el evento sea change y que el archivo modificado sea products.json.
+                  if (eventType === 'change' && changedFilename === filename) {
+
+                        // Se cargan los productos y se emite el evento updateProducts.
+                        this.loadProducts().then(() => {
+
+                              socketServer.emit('updateProducts', this.products);
+
+                        });
+
+                  };
+
+            });
+
+      };
 
       // Se define el método loadProducts, que carga los productos desde el archivo JSON.
       loadProducts = async () => {
@@ -19,7 +48,10 @@ class ProductManager {
                   // Si el archivo existe, se cargan los productos.
                   if (fs.existsSync(this.path)) {
 
+                        // Se lee el archivo.
                         const productData = await fs.promises.readFile(this.path, 'utf-8');
+
+                        // Se convierten los productos a JSON.
                         this.products = JSON.parse(productData);
 
                   } else {
@@ -28,6 +60,8 @@ class ProductManager {
 
                   };
 
+                  return this.products;
+
             } catch (error) {
 
                   // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
@@ -35,6 +69,7 @@ class ProductManager {
                   throw error;
 
             };
+
       };
 
       // Se define el método saveProducts, que guarda los productos en el archivo JSON.
@@ -63,6 +98,9 @@ class ProductManager {
 
             // Se intenta obtener los productos.
             try {
+
+                  // Se utiliza socket io para emitir el evento updateProducts.
+                  socketServer.emit('updateProducts', this.products);
 
                   // Se cargan los productos.
                   await this.loadProducts();

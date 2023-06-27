@@ -44,3 +44,5 @@ app.use('/', viewsRouter);
 socketServer.on('connection', socket => {
       console.log("Nuevo cliente conectado!");
 });
+
+export default socketServer;

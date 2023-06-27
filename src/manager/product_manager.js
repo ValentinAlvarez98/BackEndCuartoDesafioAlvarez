@@ -1,54 +1,102 @@
-// Se importa el módulo fs para poder leer y escribir archivos.
 import fs from 'fs';
 
 // Se crea la clase ProductManager.
 class ProductManager {
 
-      // Se crea un constructor para inicializar el array de productos y el path del archivo JSON.
+      // Se define el constructor.
       constructor() {
-
-            this.products = [];
             this.path = './data/products.json';
-
+            this.products = [];
+            this.loadProducts();
       }
 
-      // Se crea un método para retornar los productos.
-      getProducts = async () => {
+      // Se define el método loadProducts, que carga los productos desde el archivo JSON.
+      loadProducts = async () => {
 
-            // Se intenta ejecutar el método getProducts.
+            // Se intenta cargar los productos.
             try {
 
-                  // Si el archivo existe, se lee, se parsea y el resultado se retorna.
+                  // Si el archivo existe, se cargan los productos.
                   if (fs.existsSync(this.path)) {
 
                         const productData = await fs.promises.readFile(this.path, 'utf-8');
-                        const products = JSON.parse(productData);
-                        return products;
+                        this.products = JSON.parse(productData);
 
-                        // Si el archivo no existe, se retorna un array vacío.
                   } else {
 
-                        return [];
+                        this.products = [];
 
-                  }
+                  };
 
             } catch (error) {
 
-                  // Si hubo un error, se muestra un mensaje de error y se lanza el error.
-                  console.error("Error al ejectuar el método getProducts:", error);
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
+                  console.error('Error al cargar los productos:', error);
                   throw error;
 
-            }
+            };
+      };
+
+      // Se define el método saveProducts, que guarda los productos en el archivo JSON.
+      saveProducts = async () => {
+
+            // Se intenta guardar los productos.
+            try {
+
+                  // Se convierten los productos a JSON.
+                  const productData = JSON.stringify(this.products, null, 2);
+
+                  // Se guardan los productos.
+                  await fs.promises.writeFile(this.path, productData);
+
+            } catch (error) {
+
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
+                  console.error('Error al guardar los productos:', error);
+                  throw error;
+            };
 
       };
 
-      // Se crea un método para agregar un producto.
-      addProduct = async (title, description, code, price, status = true, stock, category, thumbnails) => {
+      // Se define el método getProducts, que devuelve los productos.
+      getProducts = async () => {
 
-            // Se intenta ejecutar el método addProduct.
+            // Se intenta obtener los productos.
             try {
 
-                  // Se crea un objeto con los datos del producto.
+                  // Se cargan los productos.
+                  await this.loadProducts();
+
+                  // Se devuelven los productos.
+                  return this.products;
+
+            } catch (error) {
+
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
+                  console.error('Error al ejecutar el método getProducts:', error);
+                  throw error;
+
+            };
+
+      };
+
+
+      // Se define el método addProduct, que agrega un producto.
+      addProduct = async (
+            title,
+            description,
+            code,
+            price,
+            status = true,
+            stock,
+            category,
+            thumbnails
+      ) => {
+
+            // Se intenta agregar el producto.
+            try {
+
+                  // Se crea el producto.
                   const newProduct = {
                         title,
                         description,
@@ -58,288 +106,198 @@ class ProductManager {
                         stock,
                         category,
                         thumbnails,
-                        id: Math.floor(Math.random() * 100) + 1
+                        id: Math.floor(Math.random() * 100) + 1,
                   };
 
-                  // Se verifica que el producto no tenga campos vacíos.
+                  // Se validan los campos del producto.
                   if (
-                        newProduct.title == null ||
-                        newProduct.description == null ||
-                        newProduct.code == null ||
-                        newProduct.price == null ||
-                        // Si el valor por defecto de status es true. ¿Por qué debemos exigir que el usuario ingrese un valor sí o sí?
-                        newProduct.status == null ||
-                        newProduct.stock == null ||
-                        newProduct.category == null
+                        !newProduct.title ||
+                        !newProduct.description ||
+                        !newProduct.code ||
+                        !newProduct.price ||
+                        !newProduct.status ||
+                        !newProduct.stock ||
+                        !newProduct.category
                   ) {
-
                         console.log('El producto ingresado no puede tener campos vacíos.');
                         return;
+                  };
 
-                  }
-
-                  // Se verifica que el código del producto no exista.
                   if (this.products.some((product) => product.code === code)) {
-
                         console.log(`El código: ${code} ingresado, ya pertenece a otro producto.`);
                         return;
-
-                  }
-
-                  // Se verifica que el id del producto no exista.
-                  if (this.products.some((product) => product.id === newProduct.id)) {
-
-                        // Si el id existe, se cambia el id del producto.
-                        newProduct.id = Math.floor(Math.random() * 100) + 1;
-
                   };
 
-                  // Se pushea el producto al array.
-                  this.products.push(newProduct);
+                  if (
+                        this.products.some((product) => product.id === newProduct.id)
+                  ) {
+                        newProduct.id = Math.floor(Math.random() * 100) + 1;
+                  };
 
-                  // Se escribe el array en el archivo JSON.
-                  await fs.promises.writeFile(this.path, JSON.stringify(this.products, null, '\t'), 'utf-8');
+                  // Se agrega el producto.
+                  this.products.push(newProduct);
+                  await this.saveProducts();
+
+                  console.log('Producto agregado correctamente.');
 
             } catch (error) {
 
-                  // Si hubo un error, se muestra un mensaje de error y se lanza el error.
-                  console.error("Error al ejectuar el método addProduct:", error);
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
+                  console.error('Error al ejecutar el método addProduct:', error);
                   throw error;
 
             };
-
       };
 
-      // Se crea un método para retornar un producto por su id.
+
+      // Se define el método getProductById, que devuelve un producto según su id.
       getProductById = async (id) => {
 
-            // Se intenta ejecutar el método getProductById.
+            // Se intenta obtener el producto.
             try {
 
-                  // Se verifica que exista el archivo JSON.
-                  if (fs.existsSync(this.path)) {
+                  // Se cargan los productos.
+                  await this.loadProducts();
+                  const product = this.products.find((product) => product.id === id);
 
-                        const productData = await fs.promises.readFile(this.path, 'utf-8');
-                        this.products = JSON.parse(productData);
-                        const product = this.products.find((product) => product.id === id);
+                  // Se devuelve el producto, si existe.
+                  if (product) {
 
-                        // Se verifica que el producto exista.
-                        if (product) {
-
-                              // Si el producto existe, se retorna.
-                              return product;
-
-                        } else {
-
-                              // Si el producto no existe, se muestra un mensaje de error y retorna.
-                              console.log(`El id: ${id} ingresado, no pertenece a ningún producto.`);
-                              return;
-
-                        };
-
-                        // Si el archivo no existe, se muestra un mensaje de error y retorna.
-                  } else {
-
-                        return "No existe ningún producto creado.";
-
-                  };
-
-            } catch (error) {
-
-                  // Si hubo un error, se muestra un mensaje de error y se lanza el error.
-                  console.error("Error al ejectuar el método getProductById:", error);
-                  throw error;
-
-            };
-
-      };
-
-      // Se crea un método para modificar un producto.
-      updateProduct = async (id, title, description, code, price, status, stock, category, thumbnails) => {
-
-            // Se intenta ejecutar el método updateProduct.
-            try {
-
-                  // Se verifica que exista el archivo JSON.
-                  if (fs.existsSync(this.path)) {
-
-                        const productData = await fs.promises.readFile(this.path, 'utf-8');
-                        this.products = JSON.parse(productData);
-
-                        // Utilizando el método getProductById, se obtiene el producto a modificar.
-                        const product = await this.getProductById(id);
-
-                        // Se verifica que el producto exista.
-                        if (product) {
-
-                              // Se crea un objeto con los datos del producto actualizado.
-                              const updatedProduct = {
-                                    ...product,
-                                    title: title || product.title,
-                                    description: description || product.description,
-                                    code: code || product.code,
-                                    price: price || product.price,
-                                    status: status || product.status,
-                                    stock: stock || product.stock,
-                                    category: category || product.category,
-                                    thumbnails: thumbnails || product.thumbnail,
-                              };
-
-                              // Se verifica que el producto no tenga campos vacíos.
-                              if (
-                                    updatedProduct.title == null ||
-                                    updatedProduct.description == null ||
-                                    updatedProduct.code == null ||
-                                    updatedProduct.price == null ||
-                                    updatedProduct.status == null ||
-                                    updatedProduct.stock == null ||
-                                    updatedProduct.category == null ||
-                                    updatedProduct.thumbnails == null
-                              ) {
-
-                                    console.log('El producto ingresado no puede tener campos vacíos.');
-                                    return;
-
-                              };
-
-                              // Se verifica que el código del producto no exista.
-                              if (code && this.products.some((p) => p.id !== id && p.code === code)) {
-
-                                    console.log(`El código: ${code} ingresado, ya pertenece a otro producto.`);
-                                    return;
-
-                              };
-
-                              // Se reemplaza el producto en el array.
-                              this.products = this.products.map((p) => (p.id === id ? updatedProduct : p));
-
-                              // Se escribe el array en el archivo JSON.
-                              await fs.promises.writeFile(this.path, JSON.stringify(this.products, null, '\t'), 'utf-8');
-
-                              console.log('Producto actualizado correctamente.');
-
-                        } else {
-
-                              console.log(`El id: ${id} ingresado, no pertenece a ningún producto.`);
-                              return;
-
-                        };
+                        return product;
 
                   } else {
 
-                        console.log('No existe ningún producto creado.');
+                        console.log(`El id: ${id} ingresado, no pertenece a ningún producto.`);
                         return;
 
                   };
 
             } catch (error) {
 
-                  // Si hubo un error, se muestra un mensaje de error y se lanza el error.
-                  console.error("Error al ejectuar el método updateProduct:", error);
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
+                  console.error('Error al ejecutar el método getProductById:', error);
                   throw error;
 
             };
 
       };
 
-      // Se crea un método para eliminar todos los productos.
-      deleteAllProducts = async () => {
+      // Se define el método updateProduct, que actualiza un producto.
+      updateProduct = async (
+            id,
+            title,
+            description,
+            code,
+            price,
+            status,
+            stock,
+            category,
+            thumbnails
+      ) => {
 
-            // Se intenta ejecutar el método deleteAllProducts.
+            // Se intenta actualizar el producto.
             try {
 
-                  // Se verifica que exista el archivo JSON.
-                  if (fs.existsSync(this.path)) {
+                  // Se cargan los productos.
+                  await this.loadProducts();
+                  const product = await this.getProductById(id);
 
-                        // Se vacía el array de productos y se elimina el archivo JSON.
-                        this.products = [];
-                        await fs.promises.unlink(this.path);
+                  // Se actualiza el producto, si existe.
+                  if (product) {
+                        const updatedProduct = {
+                              ...product,
+                              title: title || product.title,
+                              description: description || product.description,
+                              code: code || product.code,
+                              price: price || product.price,
+                              status: status || product.status,
+                              stock: stock || product.stock,
+                              category: category || product.category,
+                              thumbnails: thumbnails || product.thumbnails,
+                        };
 
-                        console.log("Todos los productos han sido eliminados.");
+                        if (
+                              !updatedProduct.title ||
+                              !updatedProduct.description ||
+                              !updatedProduct.code ||
+                              !updatedProduct.price ||
+                              !updatedProduct.status ||
+                              !updatedProduct.stock ||
+                              !updatedProduct.category
+                        ) {
+                              console.log(
+                                    'El producto actualizado no puede tener campos vacíos.'
+                              );
+                              return;
+                        };
 
+                        if (
+                              updatedProduct.code !== product.code &&
+                              this.products.some((product) => product.code === code)
+                        ) {
+                              console.log(`El código: ${code} ingresado, ya pertenece a otro producto.`);
+                              return;
+                        };
 
-                  } else {
+                        const productIndex = this.products.findIndex(
+                              (product) => product.id === id
+                        );
 
-                        console.log("No existe ningún producto creado.");
-                        return;
+                        // Se actualiza el producto.
+                        this.products[productIndex] = updatedProduct;
+                        await this.saveProducts();
+
+                        console.log('Producto actualizado correctamente.');
 
                   };
 
             } catch (error) {
 
-                  // Si hubo un error, se muestra un mensaje de error y se lanza el error.
-                  console.error("Error al ejectuar el método deleteAllProducts:", error);
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
+                  console.error('Error al ejecutar el método updateProduct:', error);
                   throw error;
 
             };
 
       };
 
-      // Se crea un método para eliminar un producto según su id.
+      // Se define el método deleteProduct, que elimina un producto.
       deleteProduct = async (id) => {
 
-            // Se intenta ejecutar el método deleteProduct.
+            // Se intenta eliminar el producto.
             try {
 
-                  // Se verifica que exista el archivo JSON.
-                  if (fs.existsSync(this.path)) {
+                  // Se cargan los productos.
+                  await this.loadProducts();
+                  const productIndex = this.products.findIndex(
+                        (product) => product.id === id
+                  );
 
-                        const productData = await fs.promises.readFile(this.path, 'utf-8');
-                        this.products = JSON.parse(productData);
+                  // Se elimina el producto, si existe.
+                  if (productIndex !== -1) {
 
-                        // Se utiliza el método getProductById para obtener el producto a eliminar.
-                        const productToDelete = await this.getProductById(id);
+                        // Se elimina el producto.
+                        this.products.splice(productIndex, 1);
+                        await this.saveProducts();
 
-                        // Se verifica que el producto exista.
-                        if (productToDelete) {
-
-                              // Se reemplaza el array sin el producto eliminado.
-                              this.products = this.products.filter((product) => product.id !== id);
-
-                              // Se verifica que el array no quede vacío.
-                              if (this.products.length === 0) {
-
-                                    console.log("No existen más productos.");
-
-                                    // Si el array queda vacío, se elimina el archivo JSON.
-                                    await fs.promises.unlink(this.path);
-
-                                    return;
-
-                                    // Si el array no queda vacío, se escribe el array en el archivo JSON.
-                              } else {
-
-                                    // Se escribe el array en el archivo JSON.
-                                    await fs.promises.writeFile(this.path, JSON.stringify(this.products, null, '\t'), 'utf-8');
-
-                              };
-
-
-                        } else {
-
-                              console.log(`El id: ${id} ingresado, no pertenece a ningún producto.`);
-                              return;
-
-                        };
+                        console.log('Producto eliminado correctamente.');
 
                   } else {
 
-                        console.log("No existe ningún producto creado.");
+                        console.log(`El id: ${id} ingresado, no pertenece a ningún producto.`);
                         return;
 
                   };
 
             } catch (error) {
 
-                  // Si hubo un error, se muestra un mensaje de error y se lanza el error.
-                  console.error("Error al ejectuar el método deleteProduct:", error);
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
+                  console.error('Error al ejecutar el método deleteProduct:', error);
                   throw error;
 
             };
-
       };
 
 };
 
-// Se exporta la clase ProductManager.
 export default ProductManager;

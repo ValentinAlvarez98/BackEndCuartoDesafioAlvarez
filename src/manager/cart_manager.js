@@ -1,37 +1,65 @@
-// Se importa el módulo fs para poder leer y escribir archivos.
-import fs, {
-      existsSync
-} from 'fs';
+import fs from 'fs';
 
 // Se crea la clase CartManager.
 class CartManager {
 
-      // Se crea un constructor para inicializar el array del carrito y el path del archivo JSON.
+      // Se define el constructor de la clase.
       constructor() {
-
-            this.carts = [];
             this.path = './data/carts.json';
-
+            this.loadCarts();
       }
 
-      // Se crea el método createCart para crear un nuevo carrito.
+      // Se crea el método loadCarts, que carga los carritos desde el archivo JSON.
+      loadCarts = async () => {
+
+            // Se intenta cargar los carritos.
+            try {
+
+                  // Si el archivo existe, se cargan los carritos.
+                  if (fs.existsSync(this.path)) {
+
+                        const cartData = await fs.promises.readFile(this.path, 'utf-8');
+                        this.carts = JSON.parse(cartData);
+
+                  } else {
+                        this.carts = [];
+                  };
+
+            } catch (error) {
+
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
+                  console.log(`Error al cargar los carritos: ${error}`);
+                  throw error;
+
+            };
+
+      };
+
+      // Se crea el método createCart, que crea un nuevo carrito.
       createCart = async () => {
 
             // Se intenta ejecutar la consulta.
             try {
 
+                  // Se crea el carrito.
                   const newCart = {
                         id: this.carts.length + 1,
                         products: []
                   };
 
+                  // Se agrega el carrito a la lista de carritos.
                   this.carts.push(newCart);
 
-                  await fs.promises.writeFile(this.path, JSON.stringify(this.carts, null, '\t'), 'utf-8');
+                  // Se guarda el carrito.
+                  await fs.promises.writeFile(
+                        this.path,
+                        JSON.stringify(this.carts, null, '\t'),
+                        'utf-8'
+                  );
 
             } catch (error) {
 
-                  // Si hubo un error al ejecutar la consulta, se envía un mensaje de error.
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
                   console.log('Error al ejecutar el método createCart:', error);
                   throw error;
 
@@ -39,76 +67,80 @@ class CartManager {
 
       };
 
-      // Se crea el método getCart para obtener el carrito por su id.
+
+      // Se crea el método getCartById, que devuelve un carrito por su id.
       getCartById = async (id) => {
 
             // Se intenta ejecutar la consulta.
             try {
 
-                  // Se verifica si existe el archivo JSON.
-                  if (fs.existsSync(this.path)) {
+                  // Se valida que el id corresponda a un carrito.
+                  const cart = this.carts.find((cart) => cart.id === id);
 
-                        const cartData = await fs.promises.readFile(this.path, 'utf-8');
-                        this.cart = JSON.parse(cartData);
-                        const cart = this.cart.find((cart) => cart.id === id);
+                  // Si no se encontró el carrito, se muestra un mensaje en consola y se devuelve undefined.
+                  if (!cart) {
+                        console.log(`El id: ${id} ingresado, no pertenece a ningún carrito.`);
+                        return;
+                  };
 
-                        // Se verifica si existe el carrito.
-                        if (!cart) return console.log(`El id: ${id} ingresado, no pertenece a ningún producto.`);
-
-                        // Si existe el carrito, se retorna el array de productos dentro del carrito.
-                        return cart.products;
-
-                  }
+                  return cart.products;
 
             } catch (error) {
 
-                  // Si hubo un error al ejecutar la consulta, se envía un mensaje de error.
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
                   console.log(`Error al ejecutar la consulta: ${error}`);
+                  throw error;
 
             };
 
       };
 
-      // Se crea el método addToCart para agregar el id del producto al carrito, utilizando los productos creados en products.json.
+
+      // Se crea el método addToCart, que agrega un producto a un carrito, según sus ids.
       addToCart = async (cartId, prodId) => {
 
             // Se intenta ejecutar la consulta.
             try {
 
-                  // Se verifica que exista el archivo JSON de productos.
-                  if (!fs.existsSync('../data/products.json')) return console.log('No existe ningún producto creado.');
+                  // Se validan los ids.
+                  if (!cartId || !prodId) {
+                        console.log("Debe ingresar un id de carrito y un id de producto.");
+                        return;
+                  };
 
-                  // Se verifica que exista el archivo JSON de carritos.
-                  if (!fs.existsSync(this.path)) return console.log('No existe ningún carrito creado.');
+                  // Se busca el carrito.
+                  const cart = this.carts.find((cart) => cart.id === cartId);
 
-                  // Se obtiene el array de productos del carrito.
-                  const cartData = await fs.promises.readFile(this.path, 'utf-8');
-                  this.cart = JSON.parse(cartData);
+                  // Si no se encontró el carrito, se muestra un mensaje en consola y se devuelve undefined.
+                  if (!cart) {
 
-                  // Se busca el carrito por su id.
-                  const cart = this.cart.find((cart) => cart.id === cartId);
+                        console.log(`No se encontró el carrito con el id: ${cartId}`);
+                        return;
 
-                  // Se verifica si existe el carrito.
-                  if (!cart) return null;
+                  };
 
-                  // Se verifica si existe el producto.
-                  const productData = await fs.promises.readFile('../data/products.json', 'utf-8');
-                  const products = JSON.parse(productData);
-                  const product = products.find((product) => product.id === prodId);
+                  // Se busca el producto.
+                  const product = await this.getProductById(prodId);
 
-                  if (!product) return null;
+                  // Si no se encontró el producto, se muestra un mensaje en consola y se devuelve undefined.
+                  if (!product) {
 
-                  // Se verifica si el producto ya existe en el carrito.
-                  const existingProduct = cart.products.find((item) => item.product === prodId);
+                        console.log(`No se encontró el producto con el id: ${prodId}`);
+                        return;
+
+                  };
+
+                  // Se agrega el producto al carrito.
+                  const existingProduct = cart.products.find(
+                        (item) => item.product === prodId
+                  );
 
                   if (existingProduct) {
 
-                        // Si el producto ya existe en el carrito, se agrega otra unidad del mismo.
                         existingProduct.quantity += 1;
 
                   } else {
 
-                        // Si el producto no existe, se agrega al array de productos del carrito.
                         const newProduct = {
                               product: prodId,
                               quantity: 1
@@ -118,14 +150,17 @@ class CartManager {
 
                   };
 
-                  // Se escribe el archivo JSON con el nuevo producto agregado.
-                  await fs.promises.writeFile(this.path, JSON.stringify(this.cart, null, '\t'), 'utf-8');
+                  await fs.promises.writeFile(
+                        this.path,
+                        JSON.stringify(this.carts, null, '\t'),
+                        'utf-8'
+                  );
 
                   console.log("Producto agregado al carrito.");
 
             } catch (error) {
 
-                  // Si hubo un error al ejecutar la consulta, se envía un mensaje de error.
+                  // Si ocurre un error, se muestra un mensaje en consola y se lanza el error.
                   console.log('Error al ejecutar el método addToCart:', error);
                   throw error;
 
@@ -135,5 +170,4 @@ class CartManager {
 
 };
 
-// Se exporta la clase ProductManager.
 export default CartManager;
